@@ -7,4 +7,5 @@
 
 Raspberry Pi firmware for a magnetic-piece-tracking digital chessboard! WIP
 
-This repository contains the Python project for the firmware that goes on the Raspberry Pi. (that goes on the 2nd PCB)
+This repository contains the Python project for the firmware that goes on the
+Raspberry Pi.
