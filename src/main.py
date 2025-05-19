@@ -41,7 +41,7 @@ manager = ChessboardManagerSingleton(interface)
 def update_loop():
     while not stop_event.is_set():
         manager.update()
-        sleep(0.1)
+        sleep(0.01)
 
 
 stop_event = threading.Event()

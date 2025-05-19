@@ -1,3 +1,4 @@
+from functools import lru_cache
 from io import BytesIO, StringIO
 
 import chess
@@ -5,6 +6,21 @@ import chess.svg
 from kivy.core.image import Image as CoreImage
 from reportlab.graphics import renderPM
 from svglib.svglib import svg2rlg
+
+
+@lru_cache(maxsize=4)
+def svg_to_core_image(svg: str) -> CoreImage:
+    """
+    Converts an SVG string to a CoreImage.
+
+    :param svg: The SVG string to convert.
+    :return: The CoreImage object.
+    """
+    drawing = svg2rlg(StringIO(svg))
+    png_buf = BytesIO()
+    renderPM.drawToFile(drawing, png_buf, fmt="PNG")
+    png_buf.seek(0)
+    return CoreImage(png_buf, ext="png")
 
 
 def get_chessboard_preview(board: chess.Board, size: int) -> CoreImage:
@@ -30,8 +46,4 @@ def get_chessboard_preview(board: chess.Board, size: int) -> CoreImage:
                           # check=check_square  # svglib doesn't like the gradient used
                           # for check so we use fill
                           fill=fill)
-    drawing = svg2rlg(StringIO(svg))
-    png_buf = BytesIO()
-    renderPM.drawToFile(drawing, png_buf, fmt="PNG")
-    png_buf.seek(0)
-    return CoreImage(png_buf, ext="png")
+    return svg_to_core_image(svg)

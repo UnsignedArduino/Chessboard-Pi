@@ -17,9 +17,9 @@ class ChessboardManagerSingleton(metaclass=Singleton):
     """
 
     _state: manager_enums.State
+    _possible_move: Optional[chess.Move]
 
     _interface: ChessboardInterface
-    _board: chess.Board
 
     _white_player_config: manager_dataclasses.PlayerConfiguration
     _black_player_config: manager_dataclasses.PlayerConfiguration
@@ -32,8 +32,8 @@ class ChessboardManagerSingleton(metaclass=Singleton):
          the linter.
         """
         self._state = manager_enums.State.IDLE
+        self._possible_move = None
         self._interface = interface
-        self._board = chess.Board()
 
     @property
     def state(self) -> manager_enums.State:
@@ -45,13 +45,38 @@ class ChessboardManagerSingleton(metaclass=Singleton):
         return self._state
 
     @property
-    def board(self) -> chess.Board:
+    def physical_board(self) -> chess.Board:
         """
-        Returns the current board.
+        Returns the physical board.
 
-        :return: The current board.
+        :return: The physical board.
         """
-        return self._board.copy()
+        return self._interface.board.copy()
+
+    @property
+    def possible_move(self) -> Optional[chess.Move]:
+        """
+        Returns the possible move detected by the interface. If not None, then there is
+        a legal move on the board which can be confirmed.
+
+        :return: The possible move detected by the interface.
+        """
+        return self._possible_move
+
+    def confirm_possible_move(self):
+        """
+        Confirms the possible move detected by the interface, adding it to the current
+        board. This should be called when the user confirms the move on the UI.
+        """
+        if self._state != manager_enums.State.GAME_IN_PROGRESS:
+            raise manager_exceptions.ChessboardManagerStateError(
+                f"Cannot confirm possible move in state \"{self._state}\".")
+        if self._possible_move is None:
+            raise manager_exceptions.ChessboardManagerStateError(
+                "No possible move to confirm.")
+        logger.debug(f"Confirming possible move: {self._possible_move}")
+        self._interface.add_move(self._possible_move)
+        self._possible_move = None
 
     def new_game(self, white_player: manager_dataclasses.PlayerConfiguration,
                  black_player: manager_dataclasses.PlayerConfiguration):
@@ -68,7 +93,6 @@ class ChessboardManagerSingleton(metaclass=Singleton):
         self._state = manager_enums.State.GAME_IN_PROGRESS
         self._white_player_config = white_player
         self._black_player_config = black_player
-        self._board.reset()
 
     def pause_and_exit(self):
         """
@@ -79,11 +103,11 @@ class ChessboardManagerSingleton(metaclass=Singleton):
                 f"Cannot pause and exit in state \"{self._state}\".")
         logger.debug("Pausing game and exiting.")
         self._state = manager_enums.State.IDLE
-        self._board.reset()
 
     def update(self):
         """
         Update the manager. This should be called as often as possible to keep the game
         state in sync with the physical board.
         """
-        self._interface.update()
+        if self._state == manager_enums.State.GAME_IN_PROGRESS:
+            self._possible_move = self._interface.check_for_possible_move()
