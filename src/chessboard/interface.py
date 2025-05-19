@@ -137,8 +137,10 @@ class ChessboardInterface:
             added_square = additions.pop()
             try:
                 move = self._curr_board.find_move(removed_square, added_square)
-                if self._curr_board.is_castling(move):
-                    # Wait for rook to move as well
+                # Wait for rook to move as well or
+                # wait for pawn to be captured to be lifted from the board
+                if self._curr_board.is_castling(move) or \
+                        self._curr_board.is_en_passant(move):
                     move = None
             except chess.IllegalMoveError:
                 pass
@@ -151,7 +153,7 @@ class ChessboardInterface:
                     if m.from_square == from_capture_square and self._curr_board.is_capture(
                             m):
                         possible_moves.append(m)
-                print(f"possible capture moves: {len(possible_moves)} {possible_moves}")
+                # print(f"possible capture moves: {len(possible_moves)} {possible_moves}")
                 if len(possible_moves) == 1:
                     move = possible_moves[0]
                 elif len(possible_moves) > 1:
@@ -166,6 +168,9 @@ class ChessboardInterface:
                         to_capture_square = (current - both_lifted).pop()
                         move = self._curr_board.find_move(from_capture_square,
                                                           to_capture_square)
+                # Wait for pawn to be captured to be lifted from the board
+                if move is not None and self._curr_board.is_en_passant(move):
+                    move = None
             except (chess.IllegalMoveError, IndexError, KeyError):
                 pass
         # Castling
@@ -199,6 +204,22 @@ class ChessboardInterface:
                         move = self._curr_board.find_move(chess.E8, chess.C8)
             except chess.IllegalMoveError:
                 pass
+        # En passant
+        elif len(removals) == 2 and len(additions) == 1:
+            try:
+                to_square = additions.pop()
+                from_squares = [removals.pop(), removals.pop()]
+                from_square = None
+                # The to_square must be on a different file than the from_square, as the
+                # captured pawn is on the same file
+                if chess.square_file(from_squares[0]) != chess.square_file(to_square):
+                    from_square = from_squares[0]
+                else:
+                    from_square = from_squares[1]
+                move = self._curr_board.find_move(from_square, to_square)
+            except chess.IllegalMoveError:
+                pass
+        # TODO: Handle promotion and capturing promotion
         # First time startup and all pieces present
         elif len(removals) == 0 and len(additions) == 32:
             self._curr_board.reset()
