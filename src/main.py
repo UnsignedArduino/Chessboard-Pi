@@ -1,4 +1,9 @@
+import threading
 from os import environ
+from time import sleep
+
+from chessboard.interface import ChessboardInterface
+from chessboard.manager import ChessboardManagerSingleton
 
 environ["KIVY_NO_ARGS"] = "1"
 
@@ -28,5 +33,25 @@ if debug:
     set_all_stdout_logger_levels(logging.DEBUG)
 logger.debug(f"Received arguments: {args}")
 
+interface = ChessboardInterface()
+interface.connect(args.port)
+manager = ChessboardManagerSingleton(interface)
+
+
+def update_loop():
+    while not stop_event.is_set():
+        manager.update()
+        sleep(0.1)
+
+
+stop_event = threading.Event()
+update_thread = threading.Thread(target=update_loop, daemon=True)
+update_thread.start()
+logger.debug("Started update thread")
+
 app = ChessboardApp()
-app.run_with_args(args.port)
+app.run()
+
+stop_event.set()
+update_thread.join()
+logger.debug("Stopped update thread")

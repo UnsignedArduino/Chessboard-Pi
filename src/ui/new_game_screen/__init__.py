@@ -2,6 +2,8 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.screenmanager import Screen
 
+from chessboard import manager_dataclasses
+from chessboard.manager import ChessboardManagerSingleton
 from chessboard.manager_enums import PlayerType
 
 
@@ -10,7 +12,9 @@ class NewGameScreen(Screen):
         super().__init__(**kwargs, name="new_game_screen")
         layout = BoxLayout(orientation="vertical")
 
-        start_game_button = Button(text="Start game", disabled=True)
+        start_game_button = Button(text="Start game")
+        start_game_button.bind(
+            on_press=self.start_game_and_switch_to_game_screen)
         layout.add_widget(start_game_button)
 
         self.white_player_type = PlayerType.HUMAN
@@ -33,9 +37,16 @@ class NewGameScreen(Screen):
 
         self.add_widget(layout)
 
-    def switch_to_main_screen(self, _):
-        self.manager.transition.direction = "right"
-        self.manager.current = "main_screen"
+    def start_game_and_switch_to_game_screen(self, _):
+        manager = ChessboardManagerSingleton()
+        manager.new_game(
+            white_player=manager_dataclasses.PlayerConfiguration(
+                player_type=self.white_player_type),
+            black_player=manager_dataclasses.PlayerConfiguration(
+                player_type=self.black_player_type),
+        )
+        self.manager.transition.direction = "left"
+        self.manager.current = "game_screen"
 
     def switch_to_white_player_config_screen(self, _):
         self.manager.transition.direction = "left"
@@ -56,3 +67,7 @@ class NewGameScreen(Screen):
             self.black_player_config_button.text = "Black player: human"
         else:
             self.black_player_config_button.text = "Black player: engine"
+
+    def switch_to_main_screen(self, _):
+        self.manager.transition.direction = "right"
+        self.manager.current = "main_screen"

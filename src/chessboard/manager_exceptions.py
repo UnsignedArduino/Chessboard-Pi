@@ -1,6 +1,6 @@
 class ChessboardManagerError(Exception):
     """
-    Base class for all exceptions raised by the ChessboardManager.
+    Base class for all exceptions raised by the ChessboardManagerSingleton.
     """
     pass
 
