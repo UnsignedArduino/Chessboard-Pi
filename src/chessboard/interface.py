@@ -137,6 +137,9 @@ class ChessboardInterface:
             added_square = additions.pop()
             try:
                 move = self._curr_board.find_move(removed_square, added_square)
+                if self._curr_board.is_castling(move):
+                    # Wait for rook to move as well
+                    move = None
             except chess.IllegalMoveError:
                 pass
         # Capture
@@ -164,6 +167,37 @@ class ChessboardInterface:
                         move = self._curr_board.find_move(from_capture_square,
                                                           to_capture_square)
             except (chess.IllegalMoveError, IndexError, KeyError):
+                pass
+        # Castling
+        elif len(removals) == 2 and len(additions) == 2:
+            white_kingside_castling_removals = chess.SquareSet(0x0000_0000_0000_0090)
+            white_kingside_castling_additions = chess.SquareSet(0x0000_0000_0000_0060)
+            white_queenside_castling_removals = chess.SquareSet(0x0000_0000_0000_0011)
+            white_queenside_castling_additions = chess.SquareSet(0x0000_0000_0000_000C)
+            black_kingside_castling_removals = chess.SquareSet(0x9000_0000_0000_0000)
+            black_kingside_castling_additions = chess.SquareSet(0x6000_0000_0000_0000)
+            black_queenside_castling_removals = chess.SquareSet(0x1100_0000_0000_0000)
+            black_queenside_castling_additions = chess.SquareSet(0x0C00_0000_0000_0000)
+            try:
+                if self._curr_board.turn == chess.WHITE:
+                    # White kingside castling
+                    if removals == white_kingside_castling_removals and \
+                            additions == white_kingside_castling_additions:
+                        move = self._curr_board.find_move(chess.E1, chess.G1)
+                    # White queenside castling
+                    elif removals == white_queenside_castling_removals and \
+                            additions == white_queenside_castling_additions:
+                        move = self._curr_board.find_move(chess.E1, chess.C1)
+                else:
+                    # Black kingside castling
+                    if removals == black_kingside_castling_removals and \
+                            additions == black_kingside_castling_additions:
+                        move = self._curr_board.find_move(chess.E8, chess.G8)
+                    # Black queenside castling
+                    elif removals == black_queenside_castling_removals and \
+                            additions == black_queenside_castling_additions:
+                        move = self._curr_board.find_move(chess.E8, chess.C8)
+            except chess.IllegalMoveError:
                 pass
         # First time startup and all pieces present
         elif len(removals) == 0 and len(additions) == 32:
