@@ -14,8 +14,13 @@ class MainScreen(Screen):
 
         # TODO: Implement resume game functionality
         resume_game_button = Button(text="Resume game", disabled=True)
-        resume_game_button.bind(on_press=self.switch_to_new_game_screen)
+
         layout.add_widget(resume_game_button)
+
+        # TODO: Implement view completed games functionality
+        completed_games_button = Button(text="View completed games", disabled=True)
+        
+        layout.add_widget(completed_games_button)
 
         self.add_widget(layout)
 
