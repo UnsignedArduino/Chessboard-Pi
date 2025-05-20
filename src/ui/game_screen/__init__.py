@@ -21,10 +21,23 @@ class GameScreen(Screen):
                                         size_hint=(None, None))
         vlayout.add_widget(self.chessboard_preview)
 
-        hlayout = BoxLayout(orientation="horizontal")
         self.confirm_move_button = Button(text="White, make a move", disabled=True)
         self.confirm_move_button.bind(on_press=self.confirm_move)
-        hlayout.add_widget(self.confirm_move_button)
+        vlayout.add_widget(self.confirm_move_button)
+
+        hlayout = BoxLayout(orientation="horizontal")
+        # TODO: Implement draw offer
+        draw_button = Button(text="Offer draw", disabled=True)
+
+        hlayout.add_widget(draw_button)
+        # TODO: Implement resign
+        resign_button = Button(text="Resign", disabled=True)
+
+        hlayout.add_widget(resign_button)
+        pause_button = Button(text="Pause")
+        pause_button.bind(on_press=self.pause)
+        hlayout.add_widget(pause_button)
+
         vlayout.add_widget(hlayout)
 
         self.update_ui()
@@ -72,8 +85,18 @@ class GameScreen(Screen):
             else:
                 manager.confirm_possible_move()
 
-    def pause_and_exit_to_main_screen(self, _):
-        manager = ChessboardManagerSingleton()
-        manager.pause_and_exit()
-        self.manager.transition.direction = "right"
-        self.manager.current = "main_screen"
+    def offer_draw(self, _):
+        """
+        Called when the offer draw button is pressed. Offers a draw.
+        """
+        pass
+
+    def resign(self, _):
+        """
+        Called when the resign button is pressed. Resigns the game.
+        """
+        pass
+
+    def pause(self, _):
+        self.manager.transition.direction = "left"
+        self.manager.current = "pause_screen"

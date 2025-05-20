@@ -6,6 +6,7 @@ from kivy.uix.screenmanager import ScreenManager
 
 from ui.game_screen import GameScreen
 from ui.game_screen.black_promoting_to_screen import BlackPromotingToScreen
+from ui.game_screen.pause_screen import PauseScreen
 from ui.game_screen.white_promoting_to_screen import WhitePromotingToScreen
 from ui.main_screen import MainScreen
 from ui.new_game_screen import NewGameScreen
@@ -32,7 +33,8 @@ class ChessboardApp(App):
             BlackPlayerConfigScreen,
             GameScreen,
             WhitePromotingToScreen,
-            BlackPromotingToScreen
+            BlackPromotingToScreen,
+            PauseScreen
         )
         for screen in screens:
             sm.add_widget(screen())

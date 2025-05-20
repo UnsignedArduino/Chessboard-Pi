@@ -102,6 +102,14 @@ class ChessboardInterface:
         """
         return self._curr_board.copy()
 
+    def reset_board(self):
+        """
+        Resets the current board to the initial position.
+        """
+        self._curr_board.reset()
+        self._square_set_history = []
+        logger.debug("Reset current board to initial position")
+
     def check_for_possible_move(self) -> Optional[chess.Move]:
         """
         Check for a possible move on the chessboard. This is done by comparing the
@@ -127,9 +135,9 @@ class ChessboardInterface:
         if len(removals) == 0 and len(additions) == 0:
             # Board state matches logical board, clear history
             self._square_set_history = []
-        print(f"removals: {len(removals)}, additions: {len(additions)}")
-        print(f"square set history: {len(self._square_set_history)} "
-              f"{self._square_set_history}")
+        # print(f"removals: {len(removals)}, additions: {len(additions)}")
+        # print(f"square set history: {len(self._square_set_history)} "
+        #       f"{self._square_set_history}")
         # print(self._curr_board)
 
         # Single piece moved or promotion

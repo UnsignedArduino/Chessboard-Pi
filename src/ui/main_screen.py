@@ -12,7 +12,7 @@ class MainScreen(Screen):
         new_game_button.bind(on_press=self.switch_to_new_game_screen)
         layout.add_widget(new_game_button)
 
-        # Not implemented yet.
+        # TODO: Implement resume game functionality
         resume_game_button = Button(text="Resume game", disabled=True)
         resume_game_button.bind(on_press=self.switch_to_new_game_screen)
         layout.add_widget(resume_game_button)

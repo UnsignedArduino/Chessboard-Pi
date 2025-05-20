@@ -101,15 +101,16 @@ class ChessboardManagerSingleton(metaclass=Singleton):
         self._white_player_config = white_player
         self._black_player_config = black_player
 
-    def pause_and_exit(self):
+    def exit(self):
         """
         Pauses the game and exits. State must be GAME_IN_PROGRESS.
         """
         if self._state != manager_enums.State.GAME_IN_PROGRESS:
             raise manager_exceptions.ChessboardManagerStateError(
                 f"Cannot pause and exit in state \"{self._state}\".")
-        logger.debug("Pausing game and exiting.")
+        logger.debug("Exiting.")
         self._state = manager_enums.State.IDLE
+        self._interface.reset_board()
 
     def update(self):
         """
