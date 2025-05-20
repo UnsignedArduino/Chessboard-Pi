@@ -18,7 +18,8 @@ serial connection to the chessboard.
 ### Dependencies
 
 * Python (earliest version tested with is 3.11)
-* `libcairo2-dev` and `python3-dev` on Debian (use `sudo apt install`)
+* `python3-cairosvg` on Debian (use `sudo apt install`) - for other OS ses the
+  [cairosvg docs](https://cairosvg.org/documentation/#installation).
 
 ### Steps
 

@@ -1,11 +1,10 @@
 from functools import lru_cache
-from io import BytesIO, StringIO
+from io import BytesIO
 
 import chess
 import chess.svg
+from cairosvg import svg2png
 from kivy.core.image import Image as CoreImage
-from reportlab.graphics import renderPM
-from svglib.svglib import svg2rlg
 
 
 @lru_cache(maxsize=16)
@@ -16,9 +15,8 @@ def svg_to_core_image(svg: str) -> CoreImage:
     :param svg: The SVG string to convert.
     :return: The CoreImage object.
     """
-    drawing = svg2rlg(StringIO(svg))
     png_buf = BytesIO()
-    renderPM.drawToFile(drawing, png_buf, fmt="PNG")
+    svg2png(bytestring=svg.encode("utf-8"), write_to=png_buf)
     png_buf.seek(0)
     return CoreImage(png_buf, ext="png")
 

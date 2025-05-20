@@ -1,5 +1,4 @@
 chess
 pyserial
 kivy[base]
-reportlab[pycairo]
-svglib
+cairosvg
