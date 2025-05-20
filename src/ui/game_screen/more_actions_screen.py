@@ -62,7 +62,7 @@ class MoreActionsScreen(Screen):
         if manager.state == manager_enums.State.GAME_IN_PROGRESS:
             self.status_label.text = "Game paused"
             self.resume_button.text = "Resume"
-            if manager.can_claim_draw:
+            if manager.game.can_claim_draw:
                 self.draw_button.disabled = False
                 self.draw_button.text = "Claim draw"
             else:
@@ -72,7 +72,7 @@ class MoreActionsScreen(Screen):
             # TODO: Implement resign functionality
             self.resign_button.disabled = True
         elif manager.state == manager_enums.State.GAME_OVER:
-            self.status_label.text = manager.outcome_as_text
+            self.status_label.text = manager.game.outcome.value
             self.resume_button.text = "Go back to game"
             self.draw_button.disabled = True
             self.resign_button.disabled = True
@@ -89,8 +89,8 @@ class MoreActionsScreen(Screen):
         Claims or offers a draw.
         """
         manager = ChessboardManagerSingleton()
-        if manager.can_claim_draw:
-            manager.claim_draw()
+        if manager.game.can_claim_draw:
+            manager.game.claim_draw()
             self.draw_button.disabled = True
         else:
             # TODO: Implement draw offer

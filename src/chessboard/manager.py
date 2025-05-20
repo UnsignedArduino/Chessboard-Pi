@@ -5,6 +5,7 @@ import chess
 
 from chessboard import manager_dataclasses, manager_enums, manager_exceptions
 from chessboard.interface import ChessboardInterface
+from game import ChessGame
 from utils.logger import create_logger
 from utils.singleton import Singleton
 
@@ -18,8 +19,7 @@ class ChessboardManagerSingleton(metaclass=Singleton):
 
     _state: manager_enums.State
     _possible_move: Optional[chess.Move]
-    _outcome: Optional[chess.Outcome]
-    _claim_draw: bool
+    _game: Optional[ChessGame]
 
     _interface: ChessboardInterface
 
@@ -35,8 +35,7 @@ class ChessboardManagerSingleton(metaclass=Singleton):
         """
         self._state = manager_enums.State.IDLE
         self._possible_move = None
-        self._outcome = None
-        self._claim_draw = False
+        self._game = None
         self._interface = interface
 
     @property
@@ -49,13 +48,13 @@ class ChessboardManagerSingleton(metaclass=Singleton):
         return self._state
 
     @property
-    def physical_board(self) -> chess.Board:
+    def game(self) -> Optional[ChessGame]:
         """
-        Returns the physical board.
+        Returns the current game instance.
 
-        :return: The physical board.
+        :return: The current game instance.
         """
-        return self._interface.board.copy()
+        return self._game
 
     @property
     def possible_move(self) -> Optional[chess.Move]:
@@ -67,66 +66,7 @@ class ChessboardManagerSingleton(metaclass=Singleton):
         """
         return self._possible_move
 
-    @property
-    def outcome(self) -> Optional[chess.Outcome]:
-        """
-        Returns the outcome of the game. If not None, then the game is over.
-
-        :return: The outcome of the game.
-        """
-        return self._outcome
-
-    @property
-    def outcome_as_text(self) -> str:
-        """
-        Returns the outcome of the game as a string.
-
-        :return: The outcome of the game as a string, or "Game in progress" if the game
-         is not over.
-        """
-        t = self.outcome.termination
-        if t == chess.Termination.CHECKMATE:
-            return f"{'White' if self.outcome.winner == chess.WHITE else 'Black'} wins by checkmate"
-        elif t == chess.Termination.STALEMATE:
-            return "Stalemate"
-        elif t == chess.Termination.INSUFFICIENT_MATERIAL:
-            return "Insufficient material"
-        elif t == chess.Termination.SEVENTYFIVE_MOVES:
-            return "Forced 75 move rule draw"
-        elif t == chess.Termination.FIVEFOLD_REPETITION:
-            return "Forced 5-fold repetition draw"
-        elif t == chess.Termination.FIFTY_MOVES:
-            return "Claimed 50 move rule draw"
-        elif t == chess.Termination.THREEFOLD_REPETITION:
-            return "Claimed 3-fold repetition draw"
-        else:
-            return "Game in progress"
-
-    @property
-    def can_claim_draw(self) -> bool:
-        """
-        Returns True if the player to move can claim a draw. (ex. 3-fold repetition)
-
-        :return: True if the player to move can claim a draw.
-        """
-        return self.physical_board.can_claim_draw()
-
-    def claim_draw(self):
-        """
-        Claim a draw. (ex. 3-fold repetition)
-        """
-        if self._state != manager_enums.State.GAME_IN_PROGRESS:
-            raise manager_exceptions.ChessboardManagerStateError(
-                f"Cannot claim draw in state \"{self._state}\".")
-        if not self.can_claim_draw:
-            raise manager_exceptions.ChessboardManagerStateError(
-                "Cannot claim draw, no draw available.")
-        logger.debug(
-            f"{'White' if self.physical_board.turn == chess.WHITE else 'Black'} "
-            f"claiming draw")
-        self._claim_draw = True
-
-    def confirm_possible_move(self,
+    def confirm_possible_move(self, *,
                               promoteTo: Optional[manager_enums.PromotionPiece] = None):
         """
         Confirms the possible move detected by the interface, adding it to the current
@@ -144,8 +84,9 @@ class ChessboardManagerSingleton(metaclass=Singleton):
             logger.debug(f"Promoting to {promoteTo.name} ({promoteTo.value[0]})")
             self._possible_move.promotion = promoteTo.value[0]
         logger.debug(f"Confirming possible move: {self._possible_move} "
-                     f"({self.physical_board.san(self._possible_move)})")
+                     f"({self.game.board.san(self._possible_move)})")
         self._interface.add_move(self._possible_move)
+        self.game.board.push(self._possible_move)
         self._possible_move = None
 
     def new_game(self, white_player: manager_dataclasses.PlayerConfiguration,
@@ -164,8 +105,7 @@ class ChessboardManagerSingleton(metaclass=Singleton):
         self._white_player_config = white_player
         self._black_player_config = black_player
         self._interface.reset_board()
-        self._outcome = None
-        self._claim_draw = False
+        self._game = ChessGame()
 
     def exit(self):
         """
@@ -178,9 +118,8 @@ class ChessboardManagerSingleton(metaclass=Singleton):
         logger.debug("Exiting.")
         self._state = manager_enums.State.IDLE
         self._possible_move = None
-        self._outcome = None
-        self._claim_draw = False
         self._interface.reset_board()
+        self._game = None
 
     def update(self):
         """
@@ -189,7 +128,7 @@ class ChessboardManagerSingleton(metaclass=Singleton):
         """
         if self._state == manager_enums.State.GAME_IN_PROGRESS:
             self._possible_move = self._interface.check_for_possible_move()
-            self._outcome = self._interface.board.outcome(claim_draw=self._claim_draw)
-            if self._outcome is not None:
+            o = self.game.outcome
+            if o is not None:
                 self._state = manager_enums.State.GAME_OVER
                 self._possible_move = None

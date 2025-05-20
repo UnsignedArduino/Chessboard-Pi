@@ -32,6 +32,6 @@ class WhitePromotingToScreen(Screen):
             "BISHOP": manager_enums.PromotionPiece.BISHOP,
             "KNIGHT": manager_enums.PromotionPiece.KNIGHT
         }
-        manager.confirm_possible_move(pieces[piece])
+        manager.confirm_possible_move(promoteTo=pieces[piece])
         self.manager.transition.direction = "right"
         self.manager.current = "game_screen"

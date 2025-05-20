@@ -64,9 +64,9 @@ class GameScreen(Screen):
                 self.vlayout.add_widget(self.more_actions_button)
             # Check for possible move
             self.confirm_move_button.disabled = manager.possible_move is None
-            player_to_move = "White" if manager.physical_board.turn == chess.WHITE else "Black"
+            player_to_move = "White" if manager.game.board.turn == chess.WHITE else "Black"
             if manager.possible_move is not None:
-                san_move = manager.physical_board.san(manager.possible_move)
+                san_move = manager.game.board.san(manager.possible_move)
                 if manager.possible_move.promotion is not None:
                     san_move = san_move.split("=")[0] + "=..."
                 self.confirm_move_button.text = f"{player_to_move}, confirm move {san_move}"
@@ -81,12 +81,13 @@ class GameScreen(Screen):
                 self.vlayout.remove_widget(self.more_actions_button)
                 self.vlayout.add_widget(self.more_actions_button)
             self.confirm_move_button.disabled = True
-            self.outcome_label.text = manager.outcome_as_text
+            self.outcome_label.text = manager.game.outcome.value
         self.last_state = manager.state
         # Update preview
-        core_img = get_chessboard_preview(manager.physical_board, manager.possible_move,
-                                          240)
-        self.chessboard_preview.texture = core_img.texture
+        if manager.game is not None:
+            core_img = get_chessboard_preview(manager.game.board, manager.possible_move,
+                                              240)
+            self.chessboard_preview.texture = core_img.texture
 
     def confirm_move(self, _):
         """
@@ -96,7 +97,7 @@ class GameScreen(Screen):
         if manager.possible_move is not None:
             if manager.possible_move.promotion is not None:
                 self.manager.transition.direction = "left"
-                self.manager.current = "white_promoting_to_screen" if manager.physical_board.turn == chess.WHITE else "black_promoting_to_screen"
+                self.manager.current = "white_promoting_to_screen" if manager.game.board.turn == chess.WHITE else "black_promoting_to_screen"
             else:
                 manager.confirm_possible_move()
 
