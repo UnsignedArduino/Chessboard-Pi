@@ -77,6 +77,32 @@ class ChessboardManagerSingleton(metaclass=Singleton):
         return self._outcome
 
     @property
+    def outcome_as_text(self) -> str:
+        """
+        Returns the outcome of the game as a string.
+
+        :return: The outcome of the game as a string, or "Game in progress" if the game
+         is not over.
+        """
+        t = self.outcome.termination
+        if t == chess.Termination.CHECKMATE:
+            return f"{'White' if self.outcome.winner == chess.WHITE else 'Black'} wins by checkmate"
+        elif t == chess.Termination.STALEMATE:
+            return "Stalemate"
+        elif t == chess.Termination.INSUFFICIENT_MATERIAL:
+            return "Insufficient material"
+        elif t == chess.Termination.SEVENTYFIVE_MOVES:
+            return "Forced 75 move rule draw"
+        elif t == chess.Termination.FIVEFOLD_REPETITION:
+            return "Forced 5-fold repetition draw"
+        elif t == chess.Termination.FIFTY_MOVES:
+            return "Claimed 50 move rule draw"
+        elif t == chess.Termination.THREEFOLD_REPETITION:
+            return "Claimed 3-fold repetition draw"
+        else:
+            return "Game in progress"
+
+    @property
     def can_claim_draw(self) -> bool:
         """
         Returns True if the player to move can claim a draw. (ex. 3-fold repetition)
