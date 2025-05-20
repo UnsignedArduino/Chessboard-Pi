@@ -37,7 +37,7 @@ class ChessboardInterface:
         :param port: The serial port to connect to.
         """
         try:
-            self._conn = Serial(port, baudrate=9600, timeout=1)
+            self._conn = Serial(port, baudrate=115200, timeout=1)
             logger.debug(f"Connected to chessboard on port {port}")
             # Clear command buffer
             self._conn.write(b"\r\n\r\n")
