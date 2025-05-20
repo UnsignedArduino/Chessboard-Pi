@@ -43,18 +43,18 @@ class MoreActionsScreen(Screen):
 
         self.add_widget(layout)
 
-    def on_enter(self, *args):
+    def on_pre_enter(self, *args):
         """
         Called when the screen is entered. Starts updating the UI.
         """
-        super().on_enter(*args)
+        super().on_pre_enter(*args)
         Clock.schedule_interval(self.update_ui, 1 / 20)
 
-    def on_leave(self, *args):
+    def on_pre_leave(self, *args):
         """
         Called when the screen is left. Stops updating the UI.
         """
-        super().on_leave(*args)
+        super().on_pre_leave(*args)
         Clock.unschedule(self.update_ui)
 
     def update_ui(self, _: Never = None):

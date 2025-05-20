@@ -8,7 +8,7 @@ from reportlab.graphics import renderPM
 from svglib.svglib import svg2rlg
 
 
-@lru_cache(maxsize=4)
+@lru_cache(maxsize=16)
 def svg_to_core_image(svg: str) -> CoreImage:
     """
     Converts an SVG string to a CoreImage.
