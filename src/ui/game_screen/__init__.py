@@ -17,6 +17,8 @@ class GameScreen(Screen):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs, name="game_screen")
+        self.draw_button = None
+
         self.last_state = manager_enums.State.IDLE
         # TODO: Rotate UI for black player
         vlayout = BoxLayout(orientation="vertical")
@@ -55,6 +57,21 @@ class GameScreen(Screen):
         core_img = get_chessboard_preview(manager.physical_board, 240)
         self.chessboard_preview.texture = core_img.texture
         if manager.state == manager_enums.State.GAME_IN_PROGRESS:
+            # UI just changed, set the bottom buttons for a game in progress
+            if self.last_state != manager.state:
+                self.hlayout.clear_widgets()
+                # TODO: Implement draw offer
+                self.draw_button = Button(text="Offer draw", disabled=True)
+                self.draw_button.bind(on_press=self.claim_or_offer_draw)
+                self.hlayout.add_widget(self.draw_button)
+                # TODO: Implement resign
+                resign_button = Button(text="Resign", disabled=True)
+
+                self.hlayout.add_widget(resign_button)
+                pause_button = Button(text="Pause")
+                pause_button.bind(on_press=self.pause)
+                self.hlayout.add_widget(pause_button)
+
             # Check for possible move
             self.confirm_move_button.disabled = manager.possible_move is None
             player_to_move = "White" if manager.physical_board.turn == chess.WHITE else "Black"
@@ -65,21 +82,21 @@ class GameScreen(Screen):
                 self.confirm_move_button.text = f"{player_to_move}, confirm move {san_move}"
             else:
                 self.confirm_move_button.text = f"{player_to_move}, make a move"
-
+            if manager.can_claim_draw:
+                self.draw_button.disabled = False
+                self.draw_button.text = "Claim draw"
+            else:
+                # TODO: Implement draw offer
+                self.draw_button.disabled = True
+                self.draw_button.text = "Offer draw"
+        elif manager.state == manager_enums.State.GAME_OVER:
+            # UI just changed, set the buttons for a game over
             if self.last_state != manager.state:
                 self.hlayout.clear_widgets()
-                # TODO: Implement draw offer
-                draw_button = Button(text="Offer draw", disabled=True)
+                exit_button = Button(text="Exit")
+                exit_button.bind(on_press=self.exit_to_main_screen)
+                self.hlayout.add_widget(exit_button)
 
-                self.hlayout.add_widget(draw_button)
-                # TODO: Implement resign
-                resign_button = Button(text="Resign", disabled=True)
-
-                self.hlayout.add_widget(resign_button)
-                pause_button = Button(text="Pause")
-                pause_button.bind(on_press=self.pause)
-                self.hlayout.add_widget(pause_button)
-        elif manager.state == manager_enums.State.GAME_OVER:
             self.confirm_move_button.disabled = True
             outcome = manager.outcome
             text = "Game ended"
@@ -99,12 +116,6 @@ class GameScreen(Screen):
                 text = "Claimed 3-fold repetition draw"
             self.confirm_move_button.text = text
 
-            if self.last_state != manager.state:
-                self.hlayout.clear_widgets()
-                exit_button = Button(text="Exit")
-                exit_button.bind(on_press=self.exit_to_main_screen)
-                self.hlayout.add_widget(exit_button)
-
         self.last_state = manager.state
 
     def confirm_move(self, _):
@@ -119,11 +130,12 @@ class GameScreen(Screen):
             else:
                 manager.confirm_possible_move()
 
-    def offer_draw(self, _):
+    def claim_or_offer_draw(self, _):
         """
-        Called when the offer draw button is pressed. Offers a draw.
+        Called when the draw button is pressed. Claims or offers a draw.
         """
-        pass
+        manager = ChessboardManagerSingleton()
+        manager.claim_draw()
 
     def resign(self, _):
         """
