@@ -84,7 +84,8 @@ class GameScreen(Screen):
             self.outcome_label.text = manager.outcome_as_text
         self.last_state = manager.state
         # Update preview
-        core_img = get_chessboard_preview(manager.physical_board, 240)
+        core_img = get_chessboard_preview(manager.physical_board, manager.possible_move,
+                                          240)
         self.chessboard_preview.texture = core_img.texture
 
     def confirm_move(self, _):
