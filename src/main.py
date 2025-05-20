@@ -1,9 +1,4 @@
-import threading
 from os import environ
-from time import sleep
-
-from chessboard.interface import ChessboardInterface
-from chessboard.manager import ChessboardManagerSingleton
 
 environ["KIVY_NO_ARGS"] = "1"
 
@@ -13,6 +8,11 @@ Config.set("graphics", "resizable", "0")
 Config.set("graphics", "width", "240")
 Config.set("graphics", "height", "320")
 
+import threading
+from time import sleep
+
+from chessboard.interface import ChessboardInterface
+from chessboard.manager import ChessboardManagerSingleton
 import logging
 from argparse import ArgumentParser
 
@@ -25,6 +25,8 @@ parser = ArgumentParser(
     description="Raspberry Pi firmware for a magnetic-piece-tracking digital chessboard! WIP")
 parser.add_argument("--port", "-p", required=True,
                     help="Serial port to connect to the chessboard.")
+parser.add_argument("--no-fullscreen", action="store_true",
+                    help="Disable fullscreen mode.")
 parser.add_argument("--debug", action="store_true",
                     help="Enable debug logging.")
 args = parser.parse_args()
@@ -32,6 +34,9 @@ debug = bool(args.debug)
 if debug:
     set_all_stdout_logger_levels(logging.DEBUG)
 logger.debug(f"Received arguments: {args}")
+
+if not args.no_fullscreen:
+    Config.set("graphics", "fullscreen", "auto")
 
 interface = ChessboardInterface()
 interface.connect(args.port)
