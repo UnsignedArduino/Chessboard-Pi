@@ -6,6 +6,7 @@ import chess
 class State(Enum):
     IDLE = "IDLE"
     GAME_IN_PROGRESS = "GAME_IN_PROGRESS"
+    GAME_OVER = "GAME_OVER"
 
 
 class PlayerType(Enum):

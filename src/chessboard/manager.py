@@ -18,6 +18,7 @@ class ChessboardManagerSingleton(metaclass=Singleton):
 
     _state: manager_enums.State
     _possible_move: Optional[chess.Move]
+    _outcome: Optional[chess.Outcome]
 
     _interface: ChessboardInterface
 
@@ -33,6 +34,7 @@ class ChessboardManagerSingleton(metaclass=Singleton):
         """
         self._state = manager_enums.State.IDLE
         self._possible_move = None
+        self._outcome = None
         self._interface = interface
 
     @property
@@ -62,6 +64,15 @@ class ChessboardManagerSingleton(metaclass=Singleton):
         :return: The possible move detected by the interface.
         """
         return self._possible_move
+
+    @property
+    def outcome(self) -> Optional[chess.Outcome]:
+        """
+        Returns the outcome of the game. If not None, then the game is over.
+
+        :return: The outcome of the game.
+        """
+        return self._outcome
 
     def confirm_possible_move(self,
                               promoteTo: Optional[manager_enums.PromotionPiece] = None):
@@ -100,16 +111,21 @@ class ChessboardManagerSingleton(metaclass=Singleton):
         self._state = manager_enums.State.GAME_IN_PROGRESS
         self._white_player_config = white_player
         self._black_player_config = black_player
+        self._interface.reset_board()
+        self._outcome = None
 
     def exit(self):
         """
         Pauses the game and exits. State must be GAME_IN_PROGRESS.
         """
-        if self._state != manager_enums.State.GAME_IN_PROGRESS:
+        if self._state not in (manager_enums.State.GAME_IN_PROGRESS,
+                               manager_enums.State.GAME_OVER):
             raise manager_exceptions.ChessboardManagerStateError(
                 f"Cannot pause and exit in state \"{self._state}\".")
         logger.debug("Exiting.")
         self._state = manager_enums.State.IDLE
+        self._possible_move = None
+        self._outcome = None
         self._interface.reset_board()
 
     def update(self):
@@ -119,3 +135,7 @@ class ChessboardManagerSingleton(metaclass=Singleton):
         """
         if self._state == manager_enums.State.GAME_IN_PROGRESS:
             self._possible_move = self._interface.check_for_possible_move()
+            self._outcome = self._interface.board.outcome()
+            if self._outcome is not None:
+                self._state = manager_enums.State.GAME_OVER
+                self._possible_move = None
