@@ -54,6 +54,8 @@ class GameScreen(Screen):
         player_to_move = "White" if manager.physical_board.turn == chess.WHITE else "Black"
         if manager.possible_move is not None:
             san_move = manager.physical_board.san(manager.possible_move)
+            if manager.possible_move.promotion is not None:
+                san_move = san_move.split("=")[0] + "=..."
             self.confirm_move_button.text = f"{player_to_move}, confirm move {san_move}"
         else:
             self.confirm_move_button.text = f"{player_to_move}, make a move"
@@ -64,8 +66,11 @@ class GameScreen(Screen):
         """
         manager = ChessboardManagerSingleton()
         if manager.possible_move is not None:
-            manager.confirm_possible_move()
-            self.update_ui()
+            if manager.possible_move.promotion is not None:
+                self.manager.transition.direction = "left"
+                self.manager.current = "white_promoting_to_screen" if manager.physical_board.turn == chess.WHITE else "black_promoting_to_screen"
+            else:
+                manager.confirm_possible_move()
 
     def pause_and_exit_to_main_screen(self, _):
         manager = ChessboardManagerSingleton()

@@ -130,21 +130,22 @@ class ChessboardInterface:
         print(f"removals: {len(removals)}, additions: {len(additions)}")
         print(f"square set history: {len(self._square_set_history)} "
               f"{self._square_set_history}")
+        # print(self._curr_board)
 
-        # Single piece moved
+        # Single piece moved or promotion
         if len(removals) == 1 and len(additions) == 1:
             removed_square = removals.pop()
             added_square = additions.pop()
             try:
                 move = self._curr_board.find_move(removed_square, added_square)
                 # Wait for rook to move as well or
-                # wait for pawn to be captured to be lifted from the board
+                # wait for pawn to be captured to be lifted from the board or
                 if self._curr_board.is_castling(move) or \
                         self._curr_board.is_en_passant(move):
                     move = None
             except chess.IllegalMoveError:
                 pass
-        # Capture
+        # Capture or capturing promotion
         elif len(removals) == 1 and len(additions) == 0:
             try:
                 from_capture_square = removals.pop()
@@ -219,11 +220,22 @@ class ChessboardInterface:
                 move = self._curr_board.find_move(from_square, to_square)
             except chess.IllegalMoveError:
                 pass
-        # TODO: Handle promotion and capturing promotion
+        # TODO: Handle capturing promotion
         # First time startup and all pieces present
         elif len(removals) == 0 and len(additions) == 32:
             self._curr_board.reset()
             self._square_set_history = []
+        # # Testing promotion with FEN
+        # # 4k3/P7/8/8/8/8/8/4K3
+        # elif len(additions) == 3:
+        #     self._curr_board = chess.Board("4k3/P7/8/8/8/8/8/4K3")
+        #     self._square_set_history = []
+        # # Testing capturing promotion with FEN
+        # # 1n2k3/P7/8/8/8/8/8/4K3
+        # elif len(additions) == 4:
+        #     self._curr_board = chess.Board("1n2k3/P7/8/8/8/8/8/4K3")
+        #     self._square_set_history = []
+
         return move
 
     def add_move(self, move: chess.Move):

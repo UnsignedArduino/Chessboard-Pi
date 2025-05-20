@@ -63,10 +63,13 @@ class ChessboardManagerSingleton(metaclass=Singleton):
         """
         return self._possible_move
 
-    def confirm_possible_move(self):
+    def confirm_possible_move(self,
+                              promoteTo: Optional[manager_enums.PromotionPiece] = None):
         """
         Confirms the possible move detected by the interface, adding it to the current
         board. This should be called when the user confirms the move on the UI.
+
+        :param promoteTo: The piece to promote to, if the move is a promotion.
         """
         if self._state != manager_enums.State.GAME_IN_PROGRESS:
             raise manager_exceptions.ChessboardManagerStateError(
@@ -74,7 +77,11 @@ class ChessboardManagerSingleton(metaclass=Singleton):
         if self._possible_move is None:
             raise manager_exceptions.ChessboardManagerStateError(
                 "No possible move to confirm.")
-        logger.debug(f"Confirming possible move: {self._possible_move}")
+        if promoteTo is not None and self._possible_move.promotion is not None:
+            logger.debug(f"Promoting to {promoteTo.name} ({promoteTo.value[0]})")
+            self._possible_move.promotion = promoteTo.value[0]
+        logger.debug(f"Confirming possible move: {self._possible_move} "
+                     f"({self.physical_board.san(self._possible_move)})")
         self._interface.add_move(self._possible_move)
         self._possible_move = None
 
