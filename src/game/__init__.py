@@ -39,29 +39,28 @@ class ChessGame:
 
         :return: The outcome of the game.
         """
+        if self._ended_to_resignation:
+            return ChessGameOutcomeType.RESIGNATION_BY_WHITE if self.board.turn == chess.WHITE else ChessGameOutcomeType.RESIGNATION_BY_BLACK
+        elif self._ended_to_agreed_draw:
+            return ChessGameOutcomeType.AGREED_DRAW
         o = self._board.outcome(claim_draw=self._claim_draw)
         if o is None:
             return None
-        outcome_type = None
-        if self._ended_to_resignation:
-            outcome_type = ChessGameOutcomeType.RESIGNATION_BY_WHITE if self.board.turn == chess.WHITE else ChessGameOutcomeType.RESIGNATION_BY_BLACK
-        elif self._ended_to_agreed_draw:
-            outcome_type = ChessGameOutcomeType.AGREED_DRAW
-        elif o.termination == chess.Termination.CHECKMATE:
-            outcome_type = ChessGameOutcomeType.CHECKMATE_BY_WHITE if o.winner == chess.WHITE else ChessGameOutcomeType.CHECKMATE_BY_BLACK
+        if o.termination == chess.Termination.CHECKMATE:
+            return ChessGameOutcomeType.CHECKMATE_BY_WHITE if o.winner == chess.WHITE else ChessGameOutcomeType.CHECKMATE_BY_BLACK
         elif o.termination == chess.Termination.STALEMATE:
-            outcome_type = ChessGameOutcomeType.STALEMATE
+            return ChessGameOutcomeType.STALEMATE
         elif o.termination == chess.Termination.INSUFFICIENT_MATERIAL:
-            outcome_type = ChessGameOutcomeType.INSUFFICIENT_MATERIAL
+            return ChessGameOutcomeType.INSUFFICIENT_MATERIAL
         elif o.termination == chess.Termination.SEVENTYFIVE_MOVES:
-            outcome_type = ChessGameOutcomeType.FORCED_SEVENTYFIVE_MOVES
+            return ChessGameOutcomeType.FORCED_SEVENTYFIVE_MOVES
         elif o.termination == chess.Termination.FIVEFOLD_REPETITION:
-            outcome_type = ChessGameOutcomeType.FORCED_FIVEFOLD_REPETITION
+            return ChessGameOutcomeType.FORCED_FIVEFOLD_REPETITION
         elif o.termination == chess.Termination.FIFTY_MOVES:
-            outcome_type = ChessGameOutcomeType.CLAIMED_FIFTY_MOVES
+            return ChessGameOutcomeType.CLAIMED_FIFTY_MOVES
         elif o.termination == chess.Termination.THREEFOLD_REPETITION:
-            outcome_type = ChessGameOutcomeType.CLAIMED_THREEFOLD_REPETITION
-        return outcome_type
+            return ChessGameOutcomeType.CLAIMED_THREEFOLD_REPETITION
+        return None
 
     @property
     def can_claim_draw(self) -> bool:

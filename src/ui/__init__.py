@@ -6,6 +6,7 @@ from kivy.uix.screenmanager import ScreenManager
 
 from ui.game_screen import GameScreen
 from ui.game_screen.black_promoting_to_screen import BlackPromotingToScreen
+from ui.game_screen.confirm_resignation_screen import ConfirmResignationScreen
 from ui.game_screen.more_actions_screen import MoreActionsScreen
 from ui.game_screen.white_promoting_to_screen import WhitePromotingToScreen
 from ui.main_screen import MainScreen
@@ -34,7 +35,8 @@ class ChessboardApp(App):
             GameScreen,
             WhitePromotingToScreen,
             BlackPromotingToScreen,
-            MoreActionsScreen
+            MoreActionsScreen,
+            ConfirmResignationScreen
         )
         for screen in screens:
             sm.add_widget(screen())

@@ -29,8 +29,7 @@ class MoreActionsScreen(Screen):
         self.draw_button.bind(on_press=self.claim_or_offer_draw)
         layout.add_widget(self.draw_button)
 
-        # TODO: Implement resign functionality
-        self.resign_button = Button(text="Resign", disabled=True)
+        self.resign_button = Button(text="Resign")
         self.resign_button.bind(on_press=self.resign)
         layout.add_widget(self.resign_button)
 
@@ -69,8 +68,7 @@ class MoreActionsScreen(Screen):
                 # TODO: Implement draw offer
                 self.draw_button.disabled = True
                 self.draw_button.text = "Offer draw"
-            # TODO: Implement resign functionality
-            self.resign_button.disabled = True
+            self.resign_button.disabled = False
         elif manager.state == manager_enums.State.GAME_OVER:
             self.status_label.text = manager.game.outcome.value
             self.resume_button.text = "Go back to game"
@@ -100,7 +98,8 @@ class MoreActionsScreen(Screen):
         """
         The current player resigns the game.
         """
-        # TODO: Implement resign functionality
+        self.manager.transition.direction = "left"
+        self.manager.current = "confirm_resignation_screen"
 
     def exit_to_main_screen(self, _):
         """

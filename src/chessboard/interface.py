@@ -228,7 +228,6 @@ class ChessboardInterface:
                 move = self._curr_board.find_move(from_square, to_square)
             except chess.IllegalMoveError:
                 pass
-        # TODO: Handle capturing promotion
         # First time startup and all pieces present
         elif len(removals) == 0 and len(additions) == 32:
             self._curr_board.reset()
