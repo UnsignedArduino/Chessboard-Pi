@@ -2,20 +2,15 @@ from os import environ
 
 environ["KIVY_NO_ARGS"] = "1"
 
-from kivy.config import Config
-
-Config.set("graphics", "resizable", "0")
-Config.set("graphics", "width", "240")
-Config.set("graphics", "height", "320")
-
+import logging
 import threading
+from argparse import ArgumentParser
 from time import sleep
+
+from kivy.core.window import Window
 
 from chessboard.interface import ChessboardInterface
 from chessboard.manager import ChessboardManagerSingleton
-import logging
-from argparse import ArgumentParser
-
 from ui import ChessboardApp
 from utils.logger import create_logger, set_all_stdout_logger_levels
 
@@ -35,8 +30,11 @@ if debug:
     set_all_stdout_logger_levels(logging.DEBUG)
 logger.debug(f"Received arguments: {args}")
 
+Window.size = (240, 320)
+Window.resizable = False
 if not args.no_fullscreen:
-    Config.set("graphics", "fullscreen", "auto")
+    logger.debug("Fullscreen mode enabled")
+    Window.fullscreen = True
 
 interface = ChessboardInterface()
 interface.connect(args.port)

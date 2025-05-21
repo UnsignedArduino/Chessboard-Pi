@@ -14,6 +14,17 @@ class SettingsScreen(Screen):
 [
   {
     "type": "options",
+    "title": "Transition speed",
+    "desc": "Choose how fast the screen transitions.",
+    "section": "display",
+    "key": "transition_speed",
+    "options": [
+      "Slow",
+      "Fast"
+    ]
+  },
+  {
+    "type": "options",
     "title": "Rotation speed",
     "desc": "Choose how fast the screen rotates.",
     "section": "display",
@@ -32,7 +43,7 @@ class SettingsScreen(Screen):
         """
         Called when the settings screen is closed.
         """
+        super().on_pre_leave(*args)
+        SettingsConfigSingleton().reload()
         self.manager.transition.direction = "right"
         self.manager.current = "main_screen"
-        c = SettingsConfigSingleton()
-        c.config.read(c.settings_path)

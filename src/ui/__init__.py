@@ -34,6 +34,9 @@ class ChessboardApp(App):
         self._player_showing_to = chess.WHITE
         self._last_player_to_show = None
 
+        self._transition_speed = 0.4
+        self._rotation_speed = 0.5
+
         self.config = ConfigParser()
         self.config.read("settings.ini")
 
@@ -56,6 +59,11 @@ class ChessboardApp(App):
         )
         for s in screens:
             self.screen_manager.add_widget(s())
+        self._update_transition_speed()
+
+        cbs = SettingsConfigSingleton().on_reload_callbacks
+        cbs.append(self._update_transition_speed)
+        cbs.append(self._update_rotation_speed)
 
         self.scatter_root.add_widget(self.screen_manager)
 
@@ -117,14 +125,23 @@ class ChessboardApp(App):
         :param angle: The angle to set the rotation to.
         :param no_animate: If True, the rotation is set without animation.
         """
-        duration = SettingsConfigSingleton().config["display"]["rotation_speed"]
-        duration = {
+        if no_animate or self._rotation_speed == 0:
+            self.scatter_root.rotation = angle
+        else:
+            anim = Animation(rotation=angle, duration=self._rotation_speed,
+                             t="out_quad")
+            anim.start(self.scatter_root)
+
+    def _update_transition_speed(self):
+        self.screen_manager.transition.duration = {
+            "slow": 0.4,
+            "fast": 0.1
+        }[SettingsConfigSingleton().config["display"]["transition_speed"].lower()]
+
+    def _update_rotation_speed(self):
+        self._rotation_speed = {
             "slow": 0.5,
             "fast": 0.1,
             "instant": 0
-        }[duration.lower()]
-        if no_animate or duration == 0:
-            self.scatter_root.rotation = angle
-        else:
-            anim = Animation(rotation=angle, duration=duration, t="out_quad")
-            anim.start(self.scatter_root)
+        }[SettingsConfigSingleton().config["display"]["rotation_speed"].lower()]
+        self.scatter_root.rotation = self._rotation_speed
