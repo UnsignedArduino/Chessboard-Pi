@@ -5,10 +5,12 @@ import chess
 from kivy.animation import Animation
 from kivy.app import App
 from kivy.clock import Clock
+from kivy.config import ConfigParser
 from kivy.uix.scatterlayout import ScatterLayout
 from kivy.uix.screenmanager import ScreenManager
 
 from chessboard.manager import ChessboardManagerSingleton, manager_enums
+from ui.config import SettingsConfigSingleton
 from ui.game_screen import GameScreen
 from ui.game_screen.black_promoting_to_screen import BlackPromotingToScreen
 from ui.game_screen.confirm_offer_draw_screen import ConfirmOfferDrawScreen
@@ -19,6 +21,7 @@ from ui.main_screen import MainScreen
 from ui.new_game_screen import NewGameScreen
 from ui.new_game_screen.black_player_config_screen import BlackPlayerConfigScreen
 from ui.new_game_screen.white_player_config_screen import WhitePlayerConfigScreen
+from ui.settings_screen import SettingsScreen
 from utils.logger import create_logger
 
 logger = create_logger(name=__name__, level=logging.DEBUG)
@@ -29,12 +32,15 @@ class ChessboardApp(App):
         super().__init__(**kwargs)
 
         self._player_showing_to = chess.WHITE
-        self._last_player_to_show = chess.WHITE
+        self._last_player_to_show = None
+
+        self.config = ConfigParser()
+        self.config.read("settings.ini")
 
         self.scatter_root = ScatterLayout(do_rotation=False, do_scale=False,
                                           do_translation=False)
 
-        sm = ScreenManager()
+        self.screen_manager = ScreenManager()
         screens = (
             MainScreen,
             NewGameScreen,
@@ -45,12 +51,13 @@ class ChessboardApp(App):
             BlackPromotingToScreen,
             MoreActionsScreen,
             ConfirmResignationScreen,
-            ConfirmOfferDrawScreen
+            ConfirmOfferDrawScreen,
+            SettingsScreen
         )
         for s in screens:
-            sm.add_widget(s())
+            self.screen_manager.add_widget(s())
 
-        self.scatter_root.add_widget(sm)
+        self.scatter_root.add_widget(self.screen_manager)
 
     def build(self):
         return self.scatter_root
@@ -75,27 +82,49 @@ class ChessboardApp(App):
         Updates the rotation of the chessboard based on the current player to show.
         """
         manager = ChessboardManagerSingleton()
-        app = App.get_running_app()
         self._player_showing_to = chess.WHITE
         if manager.game is not None and manager.state == manager_enums.State.GAME_IN_PROGRESS:
             self._player_showing_to = manager.game.board.turn
         if self._last_player_to_show != self._player_showing_to:
             if self._player_showing_to == chess.WHITE:
-                app.set_rotation_to_0()
+                self.set_rotation_to_0(no_animate=self._last_player_to_show is None)
             else:
-                app.set_rotation_to_180()
+                self.set_rotation_to_180(no_animate=self._last_player_to_show is None)
             self._last_player_to_show = self._player_showing_to
 
-    def set_rotation_to_0(self):
+    def set_rotation_to_0(self, no_animate: bool = False):
         """
-        Sets the rotation of the scatter root to 0 degrees.
-        """
-        anim = Animation(rotation=0, duration=0.5, t="out_quad")
-        anim.start(self.scatter_root)
+        Sets the rotation of the scatter root to 0 degrees with a rotating animation.
 
-    def set_rotation_to_180(self):
+        :param no_animate: If True, the rotation is set without animation.
         """
-        Sets the rotation of the scatter root to 180 degrees.
+        angle = 0
+        self._set_rotation(angle, no_animate)
+
+    def set_rotation_to_180(self, no_animate: bool = False):
         """
-        anim = Animation(rotation=180, duration=0.5, t="out_quad")
-        anim.start(self.scatter_root)
+        Sets the rotation of the scatter root to 180 degrees with a rotating animation.
+
+        :param no_animate: If True, the rotation is set without animation.
+        """
+        angle = 180
+        self._set_rotation(angle, no_animate)
+
+    def _set_rotation(self, angle: float, no_animate: bool = False):
+        """
+        Sets the rotation of the scatter root to the specified angle with a rotating animation.
+
+        :param angle: The angle to set the rotation to.
+        :param no_animate: If True, the rotation is set without animation.
+        """
+        duration = SettingsConfigSingleton().config["display"]["rotation_speed"]
+        duration = {
+            "slow": 0.5,
+            "fast": 0.1,
+            "instant": 0
+        }[duration.lower()]
+        if no_animate or duration == 0:
+            self.scatter_root.rotation = angle
+        else:
+            anim = Animation(rotation=angle, duration=duration, t="out_quad")
+            anim.start(self.scatter_root)
