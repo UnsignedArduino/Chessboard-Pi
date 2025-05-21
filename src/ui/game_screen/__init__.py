@@ -1,6 +1,7 @@
 from typing import Never
 
 import chess
+from kivy.app import App
 from kivy.clock import Clock
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
@@ -54,6 +55,7 @@ class GameScreen(Screen):
         """
         Update the UI.
         """
+        app = App.get_running_app()
         manager = ChessboardManagerSingleton()
         if manager.state == manager_enums.State.GAME_IN_PROGRESS:
             # Game just started
@@ -118,8 +120,10 @@ class GameScreen(Screen):
             self.outcome_label.text = manager.game.outcome.value
         # Update preview
         if manager.game is not None:
-            core_img = get_chessboard_preview(manager.game.board, manager.possible_move,
-                                              240)
+            core_img = get_chessboard_preview(board=manager.game.board,
+                                              possible_move=manager.possible_move,
+                                              orientation=app.player_showing_to,
+                                              size=240)
             self.chessboard_preview.texture = core_img.texture
         self.last_state = manager.state
 

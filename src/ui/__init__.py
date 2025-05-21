@@ -28,7 +28,8 @@ class ChessboardApp(App):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.last_player_to_show = chess.WHITE
+        self._player_showing_to = chess.WHITE
+        self._last_player_to_show = chess.WHITE
 
         self.scatter_root = ScatterLayout(do_rotation=False, do_scale=False,
                                           do_translation=False)
@@ -54,6 +55,15 @@ class ChessboardApp(App):
     def build(self):
         return self.scatter_root
 
+    @property
+    def player_showing_to(self) -> chess.WHITE | chess.BLACK:
+        """
+        Returns the player that is currently showing the screen.
+
+        :return: The player that is currently showing the screen.
+        """
+        return self._player_showing_to
+
     def on_start(self):
         Clock.schedule_interval(self.update_rotation, 1 / 20)
 
@@ -66,15 +76,15 @@ class ChessboardApp(App):
         """
         manager = ChessboardManagerSingleton()
         app = App.get_running_app()
-        player_to_show = chess.WHITE
+        self._player_showing_to = chess.WHITE
         if manager.game is not None and manager.state == manager_enums.State.GAME_IN_PROGRESS:
-            player_to_show = manager.game.board.turn
-        if self.last_player_to_show != player_to_show:
-            if player_to_show == chess.WHITE:
+            self._player_showing_to = manager.game.board.turn
+        if self._last_player_to_show != self._player_showing_to:
+            if self._player_showing_to == chess.WHITE:
                 app.set_rotation_to_0()
             else:
                 app.set_rotation_to_180()
-            self.last_player_to_show = player_to_show
+            self._last_player_to_show = self._player_showing_to
 
     def set_rotation_to_0(self):
         """

@@ -22,7 +22,8 @@ def svg_to_core_image(svg: str) -> CoreImage:
 
 
 def get_chessboard_preview(board: chess.Board, possible_move: chess.Move,
-                           size: int) -> CoreImage:
+                           orientation: chess.WHITE | chess.BLACK = chess.WHITE,
+                           size: int = 240) -> CoreImage:
     """
     Returns a preview of the chessboard as a PNG image.
 
@@ -41,8 +42,8 @@ def get_chessboard_preview(board: chess.Board, possible_move: chess.Move,
         side_in_check = not a_checking_piece.color
         # Get the king that is in check
         check_square = board.king(side_in_check)
-    svg = chess.svg.board(board, size=size, lastmove=last_move,
-                          check=check_square,
+    svg = chess.svg.board(board, size=size, lastmove=last_move, check=check_square,
+                          orientation=orientation,
                           arrows=[chess.svg.Arrow(possible_move.from_square,
                                                   possible_move.to_square,
                                                   color="green")] if possible_move is not None else [])
