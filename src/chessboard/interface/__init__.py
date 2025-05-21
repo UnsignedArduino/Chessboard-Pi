@@ -6,8 +6,8 @@ import chess
 import serial.serialutil
 from serial import Serial
 
-from chessboard import interface_exceptions
 from chessboard.helpers import square_set_from_board
+from chessboard.interface import interface_exceptions
 from utils.list_ops import remove_adjacent_duplicates
 from utils.logger import create_logger
 

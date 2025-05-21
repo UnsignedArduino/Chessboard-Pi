@@ -1,9 +1,14 @@
 import logging
-import threading
+from typing import Never
 
+import chess
+from kivy.animation import Animation
 from kivy.app import App
+from kivy.clock import Clock
+from kivy.uix.scatterlayout import ScatterLayout
 from kivy.uix.screenmanager import ScreenManager
 
+from chessboard.manager import ChessboardManagerSingleton, manager_enums
 from ui.game_screen import GameScreen
 from ui.game_screen.black_promoting_to_screen import BlackPromotingToScreen
 from ui.game_screen.confirm_offer_draw_screen import ConfirmOfferDrawScreen
@@ -20,13 +25,14 @@ logger = create_logger(name=__name__, level=logging.DEBUG)
 
 
 class ChessboardApp(App):
-    _update_thread: threading.Thread
-    _stop_event: threading.Event
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def build(self):
+        self.last_player_to_show = chess.WHITE
+
+        self.scatter_root = ScatterLayout(do_rotation=False, do_scale=False,
+                                          do_translation=False)
+
         sm = ScreenManager()
         screens = (
             MainScreen,
@@ -40,6 +46,46 @@ class ChessboardApp(App):
             ConfirmResignationScreen,
             ConfirmOfferDrawScreen
         )
-        for screen in screens:
-            sm.add_widget(screen())
-        return sm
+        for s in screens:
+            sm.add_widget(s())
+
+        self.scatter_root.add_widget(sm)
+
+    def build(self):
+        return self.scatter_root
+
+    def on_start(self):
+        Clock.schedule_interval(self.update_rotation, 1 / 20)
+
+    def on_stop(self):
+        Clock.unschedule(self.update_rotation)
+
+    def update_rotation(self, _: Never = None):
+        """
+        Updates the rotation of the chessboard based on the current player to show.
+        """
+        manager = ChessboardManagerSingleton()
+        app = App.get_running_app()
+        player_to_show = chess.WHITE
+        if manager.game is not None and manager.state == manager_enums.State.GAME_IN_PROGRESS:
+            player_to_show = manager.game.board.turn
+        if self.last_player_to_show != player_to_show:
+            if player_to_show == chess.WHITE:
+                app.set_rotation_to_0()
+            else:
+                app.set_rotation_to_180()
+            self.last_player_to_show = player_to_show
+
+    def set_rotation_to_0(self):
+        """
+        Sets the rotation of the scatter root to 0 degrees.
+        """
+        anim = Animation(rotation=0, duration=0.5, t="out_quad")
+        anim.start(self.scatter_root)
+
+    def set_rotation_to_180(self):
+        """
+        Sets the rotation of the scatter root to 180 degrees.
+        """
+        anim = Animation(rotation=180, duration=0.5, t="out_quad")
+        anim.start(self.scatter_root)

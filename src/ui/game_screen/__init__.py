@@ -8,8 +8,7 @@ from kivy.uix.image import Image
 from kivy.uix.label import Label
 from kivy.uix.screenmanager import Screen
 
-from chessboard import manager_enums
-from chessboard.manager import ChessboardManagerSingleton
+from chessboard.manager import ChessboardManagerSingleton, manager_enums
 from utils.chessboard_helpers import get_chessboard_preview
 
 
@@ -18,7 +17,6 @@ class GameScreen(Screen):
         super().__init__(**kwargs, name="game_screen")
         self.last_state = None
 
-        # TODO: Rotate UI for black player
         self.vlayout = BoxLayout(orientation="vertical")
 
         self.chessboard_preview = Image(fit_mode="contain", size=(240, 240),
@@ -53,6 +51,9 @@ class GameScreen(Screen):
         Clock.unschedule(self.update_ui)
 
     def update_ui(self, _: Never = None):
+        """
+        Update the UI.
+        """
         manager = ChessboardManagerSingleton()
         if manager.state == manager_enums.State.GAME_IN_PROGRESS:
             # Game just started
@@ -115,12 +116,12 @@ class GameScreen(Screen):
                 self.vlayout.add_widget(self.more_actions_button)
             self.confirm_move_button.disabled = True
             self.outcome_label.text = manager.game.outcome.value
-        self.last_state = manager.state
         # Update preview
         if manager.game is not None:
             core_img = get_chessboard_preview(manager.game.board, manager.possible_move,
                                               240)
             self.chessboard_preview.texture = core_img.texture
+        self.last_state = manager.state
 
     def confirm_move(self, _):
         """

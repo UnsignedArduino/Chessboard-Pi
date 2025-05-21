@@ -2,9 +2,8 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.screenmanager import Screen
 
-from chessboard import manager_dataclasses
-from chessboard.manager import ChessboardManagerSingleton
-from chessboard.manager_enums import PlayerType
+from chessboard.manager import ChessboardManagerSingleton, manager_dataclasses
+from chessboard.manager.manager_enums import PlayerType
 
 
 class NewGameScreen(Screen):

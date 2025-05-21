@@ -3,7 +3,7 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.screenmanager import Screen
 
-from chessboard.manager_enums import PlayerType
+from chessboard.manager.manager_enums import PlayerType
 
 
 class WhitePlayerConfigScreen(Screen):

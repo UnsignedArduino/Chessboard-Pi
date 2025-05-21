@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from chessboard import manager_enums
+from chessboard.manager import manager_enums
 
 
 @dataclass

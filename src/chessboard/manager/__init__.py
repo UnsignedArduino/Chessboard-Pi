@@ -3,8 +3,8 @@ from typing import Optional
 
 import chess
 
-from chessboard import manager_dataclasses, manager_enums, manager_exceptions
 from chessboard.interface import ChessboardInterface
+from chessboard.manager import manager_dataclasses, manager_enums, manager_exceptions
 from game import ChessGame
 from utils.logger import create_logger
 from utils.singleton import Singleton

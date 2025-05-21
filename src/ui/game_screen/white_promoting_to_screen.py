@@ -3,8 +3,7 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.screenmanager import Screen
 
-from chessboard import manager_enums
-from chessboard.manager import ChessboardManagerSingleton
+from chessboard.manager import ChessboardManagerSingleton, manager_enums
 
 
 class WhitePromotingToScreen(Screen):
