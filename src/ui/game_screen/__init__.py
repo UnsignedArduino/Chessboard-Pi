@@ -65,13 +65,46 @@ class GameScreen(Screen):
             # Check for possible move
             self.confirm_move_button.disabled = manager.possible_move is None
             player_to_move = "White" if manager.game.board.turn == chess.WHITE else "Black"
-            if manager.possible_move is not None:
-                san_move = manager.game.board.san(manager.possible_move)
-                if manager.possible_move.promotion is not None:
-                    san_move = san_move.split("=")[0] + "=..."
-                self.confirm_move_button.text = f"{player_to_move}, confirm move {san_move}"
+            # Draw offered, change UI
+            if manager.game.offered_draw is not None:
+                # Player that offered draw
+                if manager.game.offered_draw == manager.game.board.turn:
+                    if manager.possible_move is not None:
+                        san_move = manager.game.board.san(manager.possible_move)
+                        if manager.possible_move.promotion is not None:
+                            san_move = san_move.split("=")[0] + "=..."
+                        self.confirm_move_button.text = f"{player_to_move}, confirm move {san_move} first"
+                    else:
+                        self.confirm_move_button.text = f"{player_to_move}, make a move first"
+                # Other player to accept or decline draw offer
+                else:
+                    if manager.possible_move is not None:
+                        san_move = manager.game.board.san(manager.possible_move)
+                        if manager.possible_move.promotion is not None:
+                            san_move = san_move.split("=")[0] + "=..."
+                        self.confirm_move_button.text = f"{player_to_move}, confirm move {san_move} to decline"
+                    else:
+                        self.confirm_move_button.text = f"{player_to_move}, make a move to decline"
+            # Normal UI
             else:
-                self.confirm_move_button.text = f"{player_to_move}, make a move"
+                if manager.possible_move is not None:
+                    san_move = manager.game.board.san(manager.possible_move)
+                    if manager.possible_move.promotion is not None:
+                        san_move = san_move.split("=")[0] + "=..."
+                    self.confirm_move_button.text = f"{player_to_move}, confirm move {san_move}"
+                else:
+                    self.confirm_move_button.text = f"{player_to_move}, make a move"
+            # If offered draw, disable more actions button and indicate that
+            if manager.game.offered_draw is not None:
+                if manager.game.offered_draw == manager.game.board.turn:
+                    self.more_actions_button.text = "Draw offered, waiting for move"
+                    self.more_actions_button.disabled = True
+                else:
+                    self.more_actions_button.text = "Accept draw offer"
+                    self.more_actions_button.disabled = False
+            else:
+                self.more_actions_button.text = "More actions"
+                self.more_actions_button.disabled = False
         elif manager.state == manager_enums.State.GAME_OVER:
             # Game just ended
             if self.last_state != manager.state:
@@ -91,7 +124,8 @@ class GameScreen(Screen):
 
     def confirm_move(self, _):
         """
-        Called when the confirm move button is pressed. Confirms the possible move.
+        Called when the confirm move button is pressed. Confirms the possible move. This
+        button may also decline an offered draw.
         """
         manager = ChessboardManagerSingleton()
         if manager.possible_move is not None:
@@ -102,6 +136,14 @@ class GameScreen(Screen):
                 manager.confirm_possible_move()
 
     def open_more_menu(self, _):
-        # TODO: Actually pause the game by calling the manager
-        self.manager.transition.direction = "left"
-        self.manager.current = "more_actions_screen"
+        """
+        Opens the more actions menu. This is called when the more actions button is
+        pressed. This button may also accept an offered draw.
+        """
+        manager = ChessboardManagerSingleton()
+        if manager.game.offered_draw is not None:
+            manager.game.accept_offered_draw()
+        else:
+            # TODO: Actually pause the game by calling the manager
+            self.manager.transition.direction = "left"
+            self.manager.current = "more_actions_screen"

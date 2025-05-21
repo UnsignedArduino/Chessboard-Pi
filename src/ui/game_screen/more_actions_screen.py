@@ -24,8 +24,7 @@ class MoreActionsScreen(Screen):
         self.resume_button.bind(on_press=self.resume_or_go_back)
         layout.add_widget(self.resume_button)
 
-        # TODO: Implement draw offer
-        self.draw_button = Button(text="Offer draw", disabled=True)
+        self.draw_button = Button(text="Offer draw")
         self.draw_button.bind(on_press=self.claim_or_offer_draw)
         layout.add_widget(self.draw_button)
 
@@ -61,13 +60,8 @@ class MoreActionsScreen(Screen):
         if manager.state == manager_enums.State.GAME_IN_PROGRESS:
             self.status_label.text = "Game paused"
             self.resume_button.text = "Resume"
-            if manager.game.can_claim_draw:
-                self.draw_button.disabled = False
-                self.draw_button.text = "Claim draw"
-            else:
-                # TODO: Implement draw offer
-                self.draw_button.disabled = True
-                self.draw_button.text = "Offer draw"
+            self.draw_button.disabled = False
+            self.draw_button.text = "Claim draw" if manager.game.can_claim_draw else "Offer draw"
             self.resign_button.disabled = False
         elif manager.state == manager_enums.State.GAME_OVER:
             self.status_label.text = manager.game.outcome.value
@@ -91,8 +85,8 @@ class MoreActionsScreen(Screen):
             manager.game.claim_draw()
             self.draw_button.disabled = True
         else:
-            # TODO: Implement draw offer
-            pass
+            self.manager.transition.direction = "left"
+            self.manager.current = "confirm_offer_draw_screen"
 
     def resign(self, _):
         """

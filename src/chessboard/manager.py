@@ -80,6 +80,10 @@ class ChessboardManagerSingleton(metaclass=Singleton):
         if self._possible_move is None:
             raise manager_exceptions.ChessboardManagerStateError(
                 "No possible move to confirm.")
+        # If a draw was offered and it's currently the other players turn, then the move
+        # is a decline of the draw offer
+        if self.game.offered_draw is not None and self.game.offered_draw != self.game.board.turn:
+            self.game.decline_offered_draw()
         if promoteTo is not None and self._possible_move.promotion is not None:
             logger.debug(f"Promoting to {promoteTo.name} ({promoteTo.value[0]})")
             self._possible_move.promotion = promoteTo.value[0]
@@ -128,7 +132,8 @@ class ChessboardManagerSingleton(metaclass=Singleton):
         """
         if self._state == manager_enums.State.GAME_IN_PROGRESS:
             self._possible_move = self._interface.check_for_possible_move()
-            o = self.game.outcome
-            if o is not None:
-                self._state = manager_enums.State.GAME_OVER
-                self._possible_move = None
+            if self.game is not None:
+                o = self.game.outcome
+                if o is not None:
+                    self._state = manager_enums.State.GAME_OVER
+                    self._possible_move = None
