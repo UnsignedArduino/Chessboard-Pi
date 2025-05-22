@@ -25,6 +25,17 @@ class SettingsScreen(Screen):
   },
   {
     "type": "options",
+    "title": "Default player",
+    "desc": "Choose which player to show information to. (The main menu, etc.)",
+    "section": "display",
+    "key": "default_player",
+    "options": [
+      "White",
+      "Black"
+    ]
+  },
+  {
+    "type": "options",
     "title": "Rotation speed",
     "desc": "Choose how fast the screen rotates. Select None for no rotation.",
     "section": "display",

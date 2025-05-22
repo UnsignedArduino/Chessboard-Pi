@@ -30,8 +30,11 @@ logger = create_logger(name=__name__, level=logging.DEBUG)
 class ChessboardApp(App):
     _player_showing_to: chess.WHITE | chess.BLACK
     _last_player_to_show: Optional[chess.WHITE | chess.BLACK]
+
     _transition_speed: float
+    _default_player: chess.WHITE | chess.BLACK
     _rotation_speed: Optional[float]
+
     config: ConfigParser
     scatter_root: ScatterLayout
     screen_manager: ScreenManager
@@ -43,10 +46,11 @@ class ChessboardApp(App):
         self._last_player_to_show = None
 
         self._transition_speed = 0.4
+        self._default_player = chess.WHITE
         self._rotation_speed = 0.5
 
-        self.config = ConfigParser()
-        self.config.read("settings.ini")
+        self.config = SettingsConfigSingleton().config
+        SettingsConfigSingleton().reload()
 
         self.scatter_root = ScatterLayout(do_rotation=False, do_scale=False,
                                           do_translation=False)
@@ -67,11 +71,12 @@ class ChessboardApp(App):
         )
         for s in screens:
             self.screen_manager.add_widget(s())
-        self._update_transition_speed()
 
         cbs = SettingsConfigSingleton().on_reload_callbacks
         cbs.append(self._update_transition_speed)
+        cbs.append(self._update_default_player)
         cbs.append(self._update_rotation_speed)
+        SettingsConfigSingleton().reload()
 
         self.scatter_root.add_widget(self.screen_manager)
 
@@ -98,9 +103,10 @@ class ChessboardApp(App):
         Updates the rotation of the chessboard based on the current player to show.
         """
         manager = ChessboardManagerSingleton()
-        self._player_showing_to = chess.WHITE
-        if manager.game is not None and manager.state == manager_enums.State.GAME_IN_PROGRESS:
-            self._player_showing_to = manager.game.board.turn
+        self._player_showing_to = self._default_player
+        if self._rotation_speed is not None:
+            if manager.game is not None and manager.state == manager_enums.State.GAME_IN_PROGRESS:
+                self._player_showing_to = manager.game.board.turn
         if self._last_player_to_show != self._player_showing_to:
             if self._player_showing_to == chess.WHITE:
                 self.set_rotation_to_0(no_animate=self._last_player_to_show is None)
@@ -133,8 +139,6 @@ class ChessboardApp(App):
         :param angle: The angle to set the rotation to.
         :param no_animate: If True, the rotation is set without animation.
         """
-        if self._rotation_speed is None:
-            return
         if no_animate or self._rotation_speed == 0:
             self.scatter_root.rotation = angle
         else:
@@ -148,6 +152,12 @@ class ChessboardApp(App):
             "fast": 0.1
         }[SettingsConfigSingleton().config["display"]["transition_speed"].lower()]
         self.screen_manager.transition.duration = self._transition_speed
+
+    def _update_default_player(self):
+        self._default_player = {
+            "white": chess.WHITE,
+            "black": chess.BLACK
+        }[SettingsConfigSingleton().config["display"]["default_player"].lower()]
 
     def _update_rotation_speed(self):
         self._rotation_speed = {
