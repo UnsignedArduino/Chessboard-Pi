@@ -26,10 +26,11 @@ class SettingsScreen(Screen):
   {
     "type": "options",
     "title": "Rotation speed",
-    "desc": "Choose how fast the screen rotates.",
+    "desc": "Choose how fast the screen rotates. Select None for no rotation.",
     "section": "display",
     "key": "rotation_speed",
     "options": [
+      "None",
       "Slow",
       "Fast",
       "Instant"

@@ -1,5 +1,5 @@
 import logging
-from typing import Never
+from typing import Never, Optional
 
 import chess
 from kivy.animation import Animation
@@ -28,6 +28,14 @@ logger = create_logger(name=__name__, level=logging.DEBUG)
 
 
 class ChessboardApp(App):
+    _player_showing_to: chess.WHITE | chess.BLACK
+    _last_player_to_show: Optional[chess.WHITE | chess.BLACK]
+    _transition_speed: float
+    _rotation_speed: Optional[float]
+    config: ConfigParser
+    scatter_root: ScatterLayout
+    screen_manager: ScreenManager
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -125,6 +133,8 @@ class ChessboardApp(App):
         :param angle: The angle to set the rotation to.
         :param no_animate: If True, the rotation is set without animation.
         """
+        if self._rotation_speed is None:
+            return
         if no_animate or self._rotation_speed == 0:
             self.scatter_root.rotation = angle
         else:
@@ -133,15 +143,16 @@ class ChessboardApp(App):
             anim.start(self.scatter_root)
 
     def _update_transition_speed(self):
-        self.screen_manager.transition.duration = {
+        self._transition_speed = {
             "slow": 0.4,
             "fast": 0.1
         }[SettingsConfigSingleton().config["display"]["transition_speed"].lower()]
+        self.screen_manager.transition.duration = self._transition_speed
 
     def _update_rotation_speed(self):
         self._rotation_speed = {
+            "none": None,
             "slow": 0.5,
             "fast": 0.1,
             "instant": 0
         }[SettingsConfigSingleton().config["display"]["rotation_speed"].lower()]
-        self.scatter_root.rotation = self._rotation_speed
