@@ -1,1 +1,4 @@
+chess
 pyserial
+kivy[base]
+cairosvg
